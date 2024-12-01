@@ -2,7 +2,6 @@
 #define FSWORKER_H
 
 #include <string>
-#include <vector>
 #include <fstream>
 #include <filesystem>
 #include <exception>
@@ -18,6 +17,14 @@ namespace fsw_c {
 	template<typename T>
 	concept IStreamC = requires (T t, istream & ifs) {
 		{ ifs >> t } -> same_as<istream&>;
+	};
+
+	template<typename T>
+	concept ContainerC = requires(T t) {
+		{ t.begin() } -> same_as<typename T::iterator>;
+		{ t.end() } -> same_as<typename T::iterator>;
+		//{ t.empty() };
+		{ t.insert(t.end(), typename T::value_type{}) };
 	};
 
 	template<typename T>
@@ -45,19 +52,41 @@ namespace fsw {
 		ifstream ifs;
 		ifs.open(pfs, ios::in);
 		if (!ifs.is_open())
-			throw fsw_e::FSWException("Givenchi");
+			throw fsw_e::FSWException("Invalid path");
 		ifs >> obj;
 	}
 
-	template<fsw_c::IStreamC Object, fsw_c::ToPathFS PathFS>
-	void ReaderVec(vector<Object>& vobj, PathFS pfs) {
+	
+	template<fsw_c::ContainerC Container, fsw_c::ToPathFS PathFS>
+	void Reader(Container& cont, PathFS pfs) {
+		using Object = Container::value_type;
 		ifstream ifs;
 		Object buf;
 		ifs.open(pfs, ios::in);
-		if(!ifs.is_open()) 
-			throw fsw_e::FSWException("Houdini");
+		if (!ifs.is_open())
+			throw fsw_e::FSWException("Invalid path");
 		while (ifs >> buf) {
-			vobj.push_back(buf);
+			cont.insert(cont.end(), buf);
+		}
+	}
+
+	template<fsw_c::OStreamC Object, fsw_c::ToPathFS PathFS>
+	void Writer(Object& obj, PathFS pfs) {
+		ofstream ofs;
+		ofs.open(pfs, ios::app, ios::ate);
+		if (!ofs.is_open())
+			throw fsw_e::FSWException("Invalid path");
+		ofs << obj;
+	}
+
+	template<fsw_c::ContainerC Container, fsw_c::ToPathFS PathFS>
+	void Writer(Container& cont, PathFS pfs) {
+		ofstream ofs;
+		ofs.open(pfs, ios::app, ios::ate);
+		if (!ofs.is_open())
+			throw fsw_e::FSWException("Invalid path");
+		for (auto it = cont.begin(); it != cont.end(); it++) {
+			ofs << *it;
 		}
 	}
 
@@ -66,20 +95,21 @@ namespace fsw {
 		ofstream ofs;
 		ofs.open(pfs, ios::out, ios::trunc);
 		if (!ofs.is_open())
-			throw fsw_e::FSWException("Gulfik");
+			throw fsw_e::FSWException("Invalid path");
 		ofs << obj;
 	}
 
-	template<fsw_c::OStreamC Object, fsw_c::ToPathFS PathFS>
-	void ReWriterVec(vector<Object>& vobj, PathFS pfs) {
+	template<fsw_c::ContainerC Container, fsw_c::ToPathFS PathFS>
+	void ReWriter(Container& cont, PathFS pfs) {
 		ofstream ofs;
 		ofs.open(pfs, ios::out, ios::trunc);
 		if (!ofs.is_open())
-			throw fsw_e::FSWException("Gulfik");
-		for (auto it = vobj.begin(); it != vobj.end(); it++) {
+			throw fsw_e::FSWException("Invalid path");
+		for (auto it = cont.begin(); it != cont.end(); it++) {
 			ofs << *it;
 		}
 	}
+
 }
 
 #endif // !FSWORKER_H
