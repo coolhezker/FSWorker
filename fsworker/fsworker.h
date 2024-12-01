@@ -3,7 +3,7 @@
 
 #include <string>
 #include <fstream>
-#include <filesystem>
+//#include <filesystem>
 #include <exception>
 
 namespace fsw::fsw_concepts {
@@ -18,16 +18,24 @@ namespace fsw::fsw_concepts {
 	};
 
 	template<typename T>
-	concept ContainerC = requires(T t) {
+	concept ISContainerC = requires(T t, typename T::value_type obj, std::istream & ifs) {
 		{ t.begin() } -> std::same_as<typename T::iterator>;
 		{ t.end() } -> std::same_as<typename T::iterator>;
-		//{ t.empty() };
+		{ ifs >> obj } -> std::same_as<std::istream&>;
+		{ t.insert(t.end(), typename T::value_type{}) };
+	};
+
+	template<typename T>
+	concept OSContainerC = requires(T t, typename T::value_type obj, std::ostream & ofs) {
+		{ t.begin() } -> std::same_as<typename T::iterator>;
+		{ t.end() } -> std::same_as<typename T::iterator>;
+		{ ofs << obj } -> std::same_as<std::ostream&>;
 		{ t.insert(t.end(), typename T::value_type{}) };
 	};
 
 	template<typename T>
 	concept ToPathFS = requires(T t) {
-		{ static_cast<std::filesystem::path>(t) } -> std::same_as<std::filesystem::path>;
+		//{ static_cast<std::filesystem::path>(t) } -> std::same_as<std::filesystem::path>;
 		{ static_cast<std::string>(t) } -> std::same_as<std::string>;
 	};
 }
@@ -55,7 +63,7 @@ namespace fsw {
 	}
 
 	
-	template<fsw_concepts::ContainerC Container, fsw_concepts::ToPathFS PathFS>
+	template<fsw_concepts::ISContainerC Container, fsw_concepts::ToPathFS PathFS>
 	inline void Reader(Container& cont, PathFS pfs, char sep) {
 		std::ifstream ifs;
 		typename Container::value_type obj;
@@ -66,7 +74,7 @@ namespace fsw {
 		while (ifs >> obj) {
 			ifs.get(cbuf);
 			if (cbuf != sep)
-				throw fsw_exceptions::FSWException("Invalid separator");
+				throw fsw_exceptions::FSWException("Invalid format");
 			cont.insert(cont.end(), obj);
 		}
 	}
@@ -80,7 +88,7 @@ namespace fsw {
 		ofs << obj << std::endl;
 	}
 
-	template<fsw_concepts::ContainerC Container, fsw_concepts::ToPathFS PathFS>
+	template<fsw_concepts::OSContainerC Container, fsw_concepts::ToPathFS PathFS>
 	inline void Writer(Container& cont, PathFS pfs, char sep) {
 		std::ofstream ofs;
 		ofs.open(pfs, std::ios::app, std::ios::ate);
@@ -104,7 +112,7 @@ namespace fsw {
 		ofs << obj << std::endl;
 	}
 
-	template<fsw_concepts::ContainerC Container, fsw_concepts::ToPathFS PathFS>
+	template<fsw_concepts::OSContainerC Container, fsw_concepts::ToPathFS PathFS>
 	inline void ReWriter(Container& cont, PathFS pfs, char sep) {
 		std::ofstream ofs;
 		ofs.open(pfs, std::ios::out, std::ios::trunc);
