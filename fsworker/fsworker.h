@@ -34,9 +34,13 @@ namespace fsw::fsw_concepts {
 	};
 
 	template<typename T>
-	concept ToPathFS = requires(T t) {
-		//{ static_cast<std::filesystem::path>(t) } -> std::same_as<std::filesystem::path>;
+	concept ToStrFST = requires(T t) {
 		{ static_cast<std::string>(t) } -> std::same_as<std::string>;
+	};
+
+	template<typename T>
+	concept ToPathFS = requires(T t) {
+		{ static_cast<std::filesystem::path>(t) } -> std::same_as<std::filesystem::path>;
 	};
 }
 
@@ -53,8 +57,8 @@ namespace fsw::fsw_exceptions {
 }
 
 namespace fsw {
-	template<fsw_concepts::IStreamC Object, fsw_concepts::ToPathFS PathFS>
-	inline void Reader(Object& obj, PathFS pfs) {
+	template<fsw_concepts::IStreamC Object, fsw_concepts::ToStrFST PathFST>
+	inline void Reader(Object& obj, PathFST pfs) {
 		std::ifstream ifs;
 		ifs.open(pfs, std::ios::in);
 		if (!ifs.is_open())
@@ -63,8 +67,8 @@ namespace fsw {
 	}
 
 	
-	template<fsw_concepts::ISContainerC Container, fsw_concepts::ToPathFS PathFS>
-	inline void Reader(Container& cont, PathFS pfs, char sep) {
+	template<fsw_concepts::ISContainerC Container, fsw_concepts::ToStrFST PathFST>
+	inline void Reader(Container& cont, PathFST pfs, char sep) {
 		std::ifstream ifs;
 		typename Container::value_type obj;
 		char cbuf;
@@ -79,8 +83,8 @@ namespace fsw {
 		}
 	}
 
-	template<fsw_concepts::OStreamC Object, fsw_concepts::ToPathFS PathFS>
-	inline void Writer(Object& obj, PathFS pfs) {
+	template<fsw_concepts::OStreamC Object, fsw_concepts::ToStrFST PathFST>
+	inline void Writer(Object& obj, PathFST pfs) {
 		std::ofstream ofs;
 		ofs.open(pfs, std::ios::app, std::ios::ate);
 		if (!ofs.is_open())
@@ -88,8 +92,8 @@ namespace fsw {
 		ofs << obj << std::endl;
 	}
 
-	template<fsw_concepts::OSContainerC Container, fsw_concepts::ToPathFS PathFS>
-	inline void Writer(Container& cont, PathFS pfs, char sep) {
+	template<fsw_concepts::OSContainerC Container, fsw_concepts::ToStrFST PathFST>
+	inline void Writer(Container& cont, PathFST pfs, char sep) {
 		std::ofstream ofs;
 		ofs.open(pfs, std::ios::app, std::ios::ate);
 		if (!ofs.is_open())
@@ -103,8 +107,8 @@ namespace fsw {
 		ofs << std::endl;
 	}
 
-	template<fsw_concepts::OStreamC Object, fsw_concepts::ToPathFS PathFS>
-	inline void ReWriter(Object& obj, PathFS pfs) {
+	template<fsw_concepts::OStreamC Object, fsw_concepts::ToStrFST PathFST>
+	inline void ReWriter(Object& obj, PathFST pfs) {
 		std::ofstream ofs;
 		ofs.open(pfs, std::ios::out, std::ios::trunc);
 		if (!ofs.is_open())
@@ -112,8 +116,8 @@ namespace fsw {
 		ofs << obj << std::endl;
 	}
 
-	template<fsw_concepts::OSContainerC Container, fsw_concepts::ToPathFS PathFS>
-	inline void ReWriter(Container& cont, PathFS pfs, char sep) {
+	template<fsw_concepts::OSContainerC Container, fsw_concepts::ToStrFST PathFST>
+	inline void ReWriter(Container& cont, PathFST pfs, char sep) {
 		std::ofstream ofs;
 		ofs.open(pfs, std::ios::out, std::ios::trunc);
 		if (!ofs.is_open())
