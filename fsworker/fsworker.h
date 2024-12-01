@@ -6,7 +6,7 @@
 #include <filesystem>
 #include <exception>
 
-namespace fsw_c {
+namespace fsw::fsw_concepts {
 	template<typename T>
 	concept OStreamC = requires (T t, std::ostream & ofs) {
 		{ ofs << t } -> std::same_as<std::ostream&>;
@@ -32,7 +32,7 @@ namespace fsw_c {
 	};
 }
 
-namespace fsw_e {
+namespace fsw::fsw_exceptions {
 	class FSWException : public std::exception {
 	private:
 		std::string Message;
@@ -45,67 +45,78 @@ namespace fsw_e {
 }
 
 namespace fsw {
-	template<fsw_c::IStreamC Object, fsw_c::ToPathFS PathFS>
+	template<fsw_concepts::IStreamC Object, fsw_concepts::ToPathFS PathFS>
 	inline void Reader(Object& obj, PathFS pfs) {
 		std::ifstream ifs;
 		ifs.open(pfs, std::ios::in);
 		if (!ifs.is_open())
-			throw fsw_e::FSWException("Invalid path");
+			throw fsw_exceptions::FSWException("Invalid path");
 		ifs >> obj;
 	}
 
 	
-	template<fsw_c::ContainerC Container, fsw_c::ToPathFS PathFS>
-	inline void Reader(Container& cont, PathFS pfs) {
-		using Object = Container::value_type;
+	template<fsw_concepts::ContainerC Container, fsw_concepts::ToPathFS PathFS>
+	inline void Reader(Container& cont, PathFS pfs, char sep) {
 		std::ifstream ifs;
-		Object buf;
+		typename Container::value_type obj;
+		char cbuf;
 		ifs.open(pfs, std::ios::in);
 		if (!ifs.is_open())
-			throw fsw_e::FSWException("Invalid path");
-		while (ifs >> buf) {
-			cont.insert(cont.end(), buf);
+			throw fsw_exceptions::FSWException("Invalid path");
+		while (ifs >> obj) {
+			ifs.get(cbuf);
+			if (cbuf != sep)
+				throw fsw_exceptions::FSWException("Invalid separator");
+			cont.insert(cont.end(), obj);
 		}
 	}
 
-	template<fsw_c::OStreamC Object, fsw_c::ToPathFS PathFS>
+	template<fsw_concepts::OStreamC Object, fsw_concepts::ToPathFS PathFS>
 	inline void Writer(Object& obj, PathFS pfs) {
 		std::ofstream ofs;
 		ofs.open(pfs, std::ios::app, std::ios::ate);
 		if (!ofs.is_open())
-			throw fsw_e::FSWException("Invalid path");
-		ofs << obj;
+			throw fsw_exceptions::FSWException("Invalid path");
+		ofs << obj << std::endl;
 	}
 
-	template<fsw_c::ContainerC Container, fsw_c::ToPathFS PathFS>
-	inline void Writer(Container& cont, PathFS pfs) {
+	template<fsw_concepts::ContainerC Container, fsw_concepts::ToPathFS PathFS>
+	inline void Writer(Container& cont, PathFS pfs, char sep) {
 		std::ofstream ofs;
 		ofs.open(pfs, std::ios::app, std::ios::ate);
 		if (!ofs.is_open())
-			throw fsw_e::FSWException("Invalid path");
-		for (auto it = cont.begin(); it != cont.end(); it++) {
+			throw fsw_exceptions::FSWException("Invalid path");
+		for (auto it = cont.begin(); it != cont.end();) {
 			ofs << *it;
+			it++;
+			if (it != cont.end())
+				ofs << sep;
 		}
+		ofs << std::endl;
 	}
 
-	template<fsw_c::OStreamC Object, fsw_c::ToPathFS PathFS>
+	template<fsw_concepts::OStreamC Object, fsw_concepts::ToPathFS PathFS>
 	inline void ReWriter(Object& obj, PathFS pfs) {
 		std::ofstream ofs;
 		ofs.open(pfs, std::ios::out, std::ios::trunc);
 		if (!ofs.is_open())
-			throw fsw_e::FSWException("Invalid path");
-		ofs << obj;
+			throw fsw_exceptions::FSWException("Invalid path");
+		ofs << obj << std::endl;
 	}
 
-	template<fsw_c::ContainerC Container, fsw_c::ToPathFS PathFS>
-	inline void ReWriter(Container& cont, PathFS pfs) {
+	template<fsw_concepts::ContainerC Container, fsw_concepts::ToPathFS PathFS>
+	inline void ReWriter(Container& cont, PathFS pfs, char sep) {
 		std::ofstream ofs;
 		ofs.open(pfs, std::ios::out, std::ios::trunc);
 		if (!ofs.is_open())
-			throw fsw_e::FSWException("Invalid path");
-		for (auto it = cont.begin(); it != cont.end(); it++) {
+			throw fsw_exceptions::FSWException("Invalid path");
+		for (auto it = cont.begin(); it != cont.end();) {
 			ofs << *it;
+			it++;
+			if (it != cont.end())
+				ofs << sep;
 		}
+		ofs << std::endl;
 	}
 
 }
