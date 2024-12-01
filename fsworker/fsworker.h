@@ -6,40 +6,38 @@
 #include <filesystem>
 #include <exception>
 
-using namespace std;
-
 namespace fsw_c {
 	template<typename T>
-	concept OStreamC = requires (T t, ostream & ofs) {
-		{ ofs << t } -> same_as<ostream&>;
+	concept OStreamC = requires (T t, std::ostream & ofs) {
+		{ ofs << t } -> std::same_as<std::ostream&>;
 	};
 
 	template<typename T>
-	concept IStreamC = requires (T t, istream & ifs) {
-		{ ifs >> t } -> same_as<istream&>;
+	concept IStreamC = requires (T t, std::istream & ifs) {
+		{ ifs >> t } -> std::same_as<std::istream&>;
 	};
 
 	template<typename T>
 	concept ContainerC = requires(T t) {
-		{ t.begin() } -> same_as<typename T::iterator>;
-		{ t.end() } -> same_as<typename T::iterator>;
+		{ t.begin() } -> std::same_as<typename T::iterator>;
+		{ t.end() } -> std::same_as<typename T::iterator>;
 		//{ t.empty() };
 		{ t.insert(t.end(), typename T::value_type{}) };
 	};
 
 	template<typename T>
 	concept ToPathFS = requires(T t) {
-		{ static_cast<filesystem::path>(t) } -> same_as<filesystem::path>;
-		{ static_cast<string>(t) } -> same_as<string>;
+		{ static_cast<std::filesystem::path>(t) } -> std::same_as<std::filesystem::path>;
+		{ static_cast<std::string>(t) } -> std::same_as<std::string>;
 	};
 }
 
 namespace fsw_e {
-	class FSWException : public exception {
+	class FSWException : public std::exception {
 	private:
-		string Message;
+		std::string Message;
 	public:
-		FSWException(const string& msg) : Message{ msg } {};
+		FSWException(const std::string& msg) : Message{ msg } {};
 		const char* what() const noexcept override {
 			return Message.c_str();
 		}
@@ -48,9 +46,9 @@ namespace fsw_e {
 
 namespace fsw {
 	template<fsw_c::IStreamC Object, fsw_c::ToPathFS PathFS>
-	void Reader(Object& obj, PathFS pfs) {
-		ifstream ifs;
-		ifs.open(pfs, ios::in);
+	inline void Reader(Object& obj, PathFS pfs) {
+		std::ifstream ifs;
+		ifs.open(pfs, std::ios::in);
 		if (!ifs.is_open())
 			throw fsw_e::FSWException("Invalid path");
 		ifs >> obj;
@@ -58,11 +56,11 @@ namespace fsw {
 
 	
 	template<fsw_c::ContainerC Container, fsw_c::ToPathFS PathFS>
-	void Reader(Container& cont, PathFS pfs) {
+	inline void Reader(Container& cont, PathFS pfs) {
 		using Object = Container::value_type;
-		ifstream ifs;
+		std::ifstream ifs;
 		Object buf;
-		ifs.open(pfs, ios::in);
+		ifs.open(pfs, std::ios::in);
 		if (!ifs.is_open())
 			throw fsw_e::FSWException("Invalid path");
 		while (ifs >> buf) {
@@ -71,18 +69,18 @@ namespace fsw {
 	}
 
 	template<fsw_c::OStreamC Object, fsw_c::ToPathFS PathFS>
-	void Writer(Object& obj, PathFS pfs) {
-		ofstream ofs;
-		ofs.open(pfs, ios::app, ios::ate);
+	inline void Writer(Object& obj, PathFS pfs) {
+		std::ofstream ofs;
+		ofs.open(pfs, std::ios::app, std::ios::ate);
 		if (!ofs.is_open())
 			throw fsw_e::FSWException("Invalid path");
 		ofs << obj;
 	}
 
 	template<fsw_c::ContainerC Container, fsw_c::ToPathFS PathFS>
-	void Writer(Container& cont, PathFS pfs) {
-		ofstream ofs;
-		ofs.open(pfs, ios::app, ios::ate);
+	inline void Writer(Container& cont, PathFS pfs) {
+		std::ofstream ofs;
+		ofs.open(pfs, std::ios::app, std::ios::ate);
 		if (!ofs.is_open())
 			throw fsw_e::FSWException("Invalid path");
 		for (auto it = cont.begin(); it != cont.end(); it++) {
@@ -91,18 +89,18 @@ namespace fsw {
 	}
 
 	template<fsw_c::OStreamC Object, fsw_c::ToPathFS PathFS>
-	void ReWriter(Object& obj, PathFS pfs) {
-		ofstream ofs;
-		ofs.open(pfs, ios::out, ios::trunc);
+	inline void ReWriter(Object& obj, PathFS pfs) {
+		std::ofstream ofs;
+		ofs.open(pfs, std::ios::out, std::ios::trunc);
 		if (!ofs.is_open())
 			throw fsw_e::FSWException("Invalid path");
 		ofs << obj;
 	}
 
 	template<fsw_c::ContainerC Container, fsw_c::ToPathFS PathFS>
-	void ReWriter(Container& cont, PathFS pfs) {
-		ofstream ofs;
-		ofs.open(pfs, ios::out, ios::trunc);
+	inline void ReWriter(Container& cont, PathFS pfs) {
+		std::ofstream ofs;
+		ofs.open(pfs, std::ios::out, std::ios::trunc);
 		if (!ofs.is_open())
 			throw fsw_e::FSWException("Invalid path");
 		for (auto it = cont.begin(); it != cont.end(); it++) {
