@@ -60,7 +60,7 @@ namespace fsw {
 	template<fsw_concepts::IStreamC Object, fsw_concepts::ToStrFST PathFST>
 	inline void Reader(Object& obj, PathFST pfs) {
 		std::ifstream ifs;
-		ifs.open(pfs, std::ios::in);
+		ifs.open(static_cast<std::string>(pfs), std::ios::in);
 		if (!ifs.is_open())
 			throw fsw_exceptions::FSWException("Invalid path");
 		ifs >> obj;
@@ -72,7 +72,7 @@ namespace fsw {
 		std::ifstream ifs;
 		typename Container::value_type obj;
 		char cbuf;
-		ifs.open(pfs, std::ios::in);
+		ifs.open(static_cast<std::string>(pfs), std::ios::in);
 		if (!ifs.is_open())
 			throw fsw_exceptions::FSWException("Invalid path");
 		while (ifs >> obj) {
@@ -86,7 +86,7 @@ namespace fsw {
 	template<fsw_concepts::OStreamC Object, fsw_concepts::ToStrFST PathFST>
 	inline void Writer(Object& obj, PathFST pfs) {
 		std::ofstream ofs;
-		ofs.open(pfs, std::ios::app, std::ios::ate);
+		ofs.open(static_cast<std::string>(pfs), std::ios::app, std::ios::ate);
 		if (!ofs.is_open())
 			throw fsw_exceptions::FSWException("Invalid path");
 		ofs << obj << std::endl;
@@ -95,7 +95,7 @@ namespace fsw {
 	template<fsw_concepts::OSContainerC Container, fsw_concepts::ToStrFST PathFST>
 	inline void Writer(Container& cont, PathFST pfs, char sep) {
 		std::ofstream ofs;
-		ofs.open(pfs, std::ios::app, std::ios::ate);
+		ofs.open(static_cast<std::string>(pfs), std::ios::app, std::ios::ate);
 		if (!ofs.is_open())
 			throw fsw_exceptions::FSWException("Invalid path");
 		for (auto it = cont.begin(); it != cont.end();) {
@@ -110,7 +110,7 @@ namespace fsw {
 	template<fsw_concepts::OStreamC Object, fsw_concepts::ToStrFST PathFST>
 	inline void ReWriter(Object& obj, PathFST pfs) {
 		std::ofstream ofs;
-		ofs.open(pfs, std::ios::out, std::ios::trunc);
+		ofs.open(static_cast<std::string>(pfs), std::ios::out, std::ios::trunc);
 		if (!ofs.is_open())
 			throw fsw_exceptions::FSWException("Invalid path");
 		ofs << obj << std::endl;
@@ -119,7 +119,7 @@ namespace fsw {
 	template<fsw_concepts::OSContainerC Container, fsw_concepts::ToStrFST PathFST>
 	inline void ReWriter(Container& cont, PathFST pfs, char sep) {
 		std::ofstream ofs;
-		ofs.open(pfs, std::ios::out, std::ios::trunc);
+		ofs.open(static_cast<std::string>(pfs), std::ios::out, std::ios::trunc);
 		if (!ofs.is_open())
 			throw fsw_exceptions::FSWException("Invalid path");
 		for (auto it = cont.begin(); it != cont.end();) {
